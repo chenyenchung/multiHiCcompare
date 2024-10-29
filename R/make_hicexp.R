@@ -172,13 +172,26 @@ make_hicexp <- function(..., data_list = NA, groups, covariates = NULL,
   # set table in place on condition list
   hic_table <- tmp_table
   # check chr format, if "chr#" change to just the number
-  if (!is.numeric(hic_table$chr)) {
+  if (!is.numeric(hic_table$chr)) { 
     # replace any "chr"
     hic_table[, chr := sub("chr", "", chr)]
-    # replace any X 
-    hic_table[, chr := sub("X", "23", chr)]
-    # replace any Y
-    hic_table[, chr := sub("Y", "24", chr)]
+
+    chr_vec <- unique(hic_table$chr)
+    max_chr <- suppressWarnings(
+      max(as.numeric(chr_vec), na.rm = TRUE)
+    )
+
+    to_number <- chr_vec[is.na(suppressWarnings(as.numeric(chr_vec)))]
+    to_number <- sort(to_number)
+    chr_arb_number <- seq(from = max_chr + 1, to = max_chr + length(to_number))
+    chr_arb_number <- as.character(chr_arb_number)
+
+    for (i in seq_along(to_number)) {
+      message("Renaming chr", to_number[i], " to ",
+              "chr", chr_arb_number[i], ".")
+      hic_table[, chr := sub(to_number[i], chr_arb_number[i], chr)]
+    }
+    
     # convert to numeric
     hic_table[, chr := as.numeric(chr)]
   }
