@@ -49,6 +49,15 @@ hic_scale <- function(hicexp) {
     new.IF <- x / scale.factor
     return(new.IF)
   })
+
+  # apply() is not type safe so we must deal with
+  # edge cases like chromosomes that have only one
+  # entry and enforce output dimensionality
+  if (is.null(dim(scaled_IFs))) {
+    dim(scaled_IFs) <- c(1, length(scaled_IFs))
+    colnames(scaled_IFs) <- colnames(IFs)
+  }
+  
   # recombine table
   new_table <- cbind(tab[, c('chr', 'region1', 'region2', 'D')], scaled_IFs)
   return(new_table)
